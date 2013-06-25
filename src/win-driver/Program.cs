@@ -22,6 +22,11 @@ namespace WinDriver
             var config = new HttpSelfHostConfiguration(String.Format("http://{0}:{1}", ip, port));
 
             config.Routes.MapHttpRoute(
+                "Shutdown",
+                "wd/hub/shutdown",
+                new { controller = "Shutdown", action = "Default" });
+
+            config.Routes.MapHttpRoute(
                 "DefaultApiGet",
                 "wd/hub/{controller}",
                 new { action = "Get" },
@@ -33,7 +38,6 @@ namespace WinDriver
             using (var server = new NinjectSelfHostBootstrapper(CreateKernel, config))
             {
                 server.Start();
-                Console.WriteLine("Press Enter to quit.");
                 Console.ReadLine();
             }
         }

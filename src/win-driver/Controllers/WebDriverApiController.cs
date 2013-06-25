@@ -1,7 +1,7 @@
 ﻿using System.Web.Http;
 using WinDriver.ActionFilters;
 
-namespace WinDriver
+namespace WinDriver.Controllers
 {
     [NoCache]
     public abstract class WebDriverApiController : ApiController

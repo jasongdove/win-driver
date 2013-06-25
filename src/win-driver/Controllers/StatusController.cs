@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace WinDriver
+namespace WinDriver.Controllers
 {
     public class StatusController : WebDriverApiController
     {

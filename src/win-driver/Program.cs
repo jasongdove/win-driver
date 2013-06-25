@@ -2,10 +2,12 @@
 using System.Configuration;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Formatting;
 using System.Reflection;
 using System.Web.Http;
 using System.Web.Http.Routing;
 using System.Web.Http.SelfHost;
+using Newtonsoft.Json.Serialization;
 using Ninject;
 using Ninject.Web.Common.SelfHost;
 
@@ -27,13 +29,27 @@ namespace WinDriver
                 new { controller = "Shutdown", action = "Default" });
 
             config.Routes.MapHttpRoute(
+                "DefaultApiWithId",
+                "wd/hub/{controller}/{id}",
+                new { id = RouteParameter.Optional });
+
+            config.Routes.MapHttpRoute(
                 "DefaultApiGet",
                 "wd/hub/{controller}",
                 new { action = "Get" },
                 new { httpMethod = new HttpMethodConstraint(HttpMethod.Get) });
 
+            config.Routes.MapHttpRoute(
+                "DefaultApiPost",
+                "wd/hub/{controller}",
+                new { action = "Post" },
+                new { httpMethod = new HttpMethodConstraint(HttpMethod.Post) });
+
             var appXmlType = config.Formatters.XmlFormatter.SupportedMediaTypes.FirstOrDefault(x => x.MediaType == "application/xml");
             config.Formatters.XmlFormatter.SupportedMediaTypes.Remove(appXmlType);
+
+            var jsonFormatter = config.Formatters.OfType<JsonMediaTypeFormatter>().First();
+            jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
             using (var server = new NinjectSelfHostBootstrapper(CreateKernel, config))
             {

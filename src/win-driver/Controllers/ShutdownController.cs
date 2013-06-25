@@ -1,10 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Ninject.Extensions.Logging;
@@ -30,8 +26,7 @@ namespace WinDriver.Controllers
                 Content = new StringContent("<html><body>Closing...</body></html>", Encoding.UTF8, "text/html")
             };
 
-            // TODO: find a better way to do this after the response has been sent
-            Task.Factory.StartNew(() => { Thread.Sleep(2000); Environment.Exit(0); });
+            Task.Factory.StartNew(() => Task.Delay(1000).Wait()).ContinueWith(t => Environment.Exit(0));
 
             return message;
         }

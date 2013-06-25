@@ -1,0 +1,1 @@
+{"name":"newSession", "parameters":{"desiredCapabilities":{"browserName":"firefox","version":"","platform":"ANY","javascriptEnabled":true}}, "sessionId":null}

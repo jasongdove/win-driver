@@ -1,7 +1,9 @@
 ﻿using System.Web.Http;
+using WinDriver.ActionFilters;
 
 namespace WinDriver
 {
+    [NoCache]
     public abstract class WebDriverApiController : ApiController
     {
         private const int StatusSuccess = 0;

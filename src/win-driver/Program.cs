@@ -29,6 +29,12 @@ namespace WinDriver
                 new { controller = "Shutdown", action = "Default" });
 
             config.Routes.MapHttpRoute(
+                "Sessions",
+                "wd/hub/sessions",
+                new { controller = "Session", action = "GetAll" },
+                new { httpMethod = new HttpMethodConstraint(HttpMethod.Get) });
+
+            config.Routes.MapHttpRoute(
                 "DefaultApiWithId",
                 "wd/hub/{controller}/{id}",
                 new { id = RouteParameter.Optional });

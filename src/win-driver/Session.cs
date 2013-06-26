@@ -11,6 +11,11 @@ namespace WinDriver
         }
 
         public Guid SessionId { get; private set; }
+        public string SessionKey { get { return SessionId.ToString("N"); } }
         public Capabilities Capabilities { get; set; }
+
+        public void Delete()
+        {
+        }
     }
 }

@@ -36,8 +36,8 @@ namespace WinDriver
 
             config.Routes.MapHttpRoute(
                 "DefaultApiWithId",
-                "wd/hub/{controller}/{id}",
-                new { id = RouteParameter.Optional });
+                "wd/hub/{controller}/{id}/{action}",
+                new { id = RouteParameter.Optional, action = "DefaultAction" });
 
             config.Routes.MapHttpRoute(
                 "DefaultApiGet",

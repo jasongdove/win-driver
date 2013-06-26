@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Caching;
+using System.Web.Http;
 using Newtonsoft.Json.Linq;
 using Ninject.Extensions.Logging;
 
@@ -24,6 +25,7 @@ namespace WinDriver.Controllers
             _logger = logger;
         }
 
+        [ActionName("DefaultAction")]
         public object Post(Dictionary<string, JObject> parameters)
         {
             if (parameters.ContainsKey("requiredCapabilities"))
@@ -43,7 +45,7 @@ namespace WinDriver.Controllers
                     session,
                     new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(5), RemovedCallback = SessionRemoved });
 
-                _logger.Info(String.Format("New Session Created: {0}", session.SessionId));
+                _logger.Info(String.Format("New Session Created: {0}", session.SessionKey));
 
                 var response = Request.CreateResponse(HttpStatusCode.RedirectMethod);
                 response.Headers.Location = new Uri(Url.Link("DefaultApiWithId", new { controller = "session", id = session.SessionKey }));
@@ -53,6 +55,7 @@ namespace WinDriver.Controllers
             return Invalid(parameters, InvalidRequest.MissingCommandParameter);
         }
 
+        [ActionName("DefaultAction")]
         public object Get(string id)
         {
             if (String.IsNullOrEmpty(id))
@@ -81,6 +84,7 @@ namespace WinDriver.Controllers
             return Success(allSessions);
         }
 
+        [ActionName("DefaultAction")]
         public object Delete(string id)
         {
             if (String.IsNullOrEmpty(id))
@@ -97,6 +101,25 @@ namespace WinDriver.Controllers
             session.Delete();
 
             return Success(session.SessionId, null);
+        }
+
+        [ActionName("window_handles")]
+        public object GetWindowHandles(string id)
+        {
+            if (String.IsNullOrEmpty(id))
+            {
+                return Invalid(null, InvalidRequest.MissingCommandParameter);
+            }
+
+            if (!SessionCache.Contains(id))
+            {
+                return Invalid(null, InvalidRequest.VariableResourceNotFound);
+            }
+
+            var session = (Session)SessionCache.Get(id);
+            var handles = session.GetWindowHandles().ToArray();
+
+            return Success(session.SessionId, handles);
         }
 
         private void SessionRemoved(CacheEntryRemovedArguments args)

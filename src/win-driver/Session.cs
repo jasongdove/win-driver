@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using White.Core;
 
 namespace WinDriver
@@ -30,6 +32,11 @@ namespace WinDriver
         public void Delete()
         {
             _application.Dispose();
+        }
+
+        public IEnumerable<int> GetWindowHandles()
+        {
+            return _application.GetWindows().Select(x => x.AutomationElement.Current.NativeWindowHandle);
         }
     }
 }

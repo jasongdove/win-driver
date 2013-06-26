@@ -116,11 +116,11 @@
     <Reference Include="TestStack.White">
       <HintPath>..\packages\TestStack.White.0.10.3.118\lib\net40\TestStack.White.dll</HintPath>
     </Reference>
+    <Reference Include="UIAutomationClient" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionFilters\NoCache.cs" />
     <Compile Include="Capabilities.cs" />
-    <Compile Include="Command.cs" />
     <Compile Include="Controllers\SessionController.cs" />
     <Compile Include="Controllers\ShutdownController.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />

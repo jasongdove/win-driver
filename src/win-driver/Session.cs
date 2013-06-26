@@ -1,13 +1,26 @@
 ﻿using System;
+using White.Core;
 
 namespace WinDriver
 {
     public class Session
     {
+        private readonly Application _application;
+
         public Session()
+            : this(Capabilities.GetDefaultCapabilities())
+        {
+        }
+
+        public Session(Capabilities capabilities)
         {
             SessionId = Guid.NewGuid();
-            Capabilities = Capabilities.GetDefaultCapabilities();
+            Capabilities = capabilities;
+
+            if (Capabilities.App != null)
+            {
+                _application = Application.Launch(Capabilities.App);
+            }
         }
 
         public Guid SessionId { get; private set; }
@@ -16,6 +29,7 @@ namespace WinDriver
 
         public void Delete()
         {
+            _application.Dispose();
         }
     }
 }

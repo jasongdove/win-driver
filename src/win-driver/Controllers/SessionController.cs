@@ -33,15 +33,15 @@ namespace WinDriver.Controllers
 
             if (parameters.ContainsKey("desiredCapabilities"))
             {
-                // TODO: support desired capabilities, rather than just ignoring them
-                var session = new Session();
-                
+                // TODO: verify that app exists, otherwise return session_not_created
+
+                // TODO: support more desired capabilities, rather than just ignoring them
+                var session = new Session(new Capabilities(parameters["desiredCapabilities"]));
+
                 SessionCache.Add(
                     session.SessionKey,
                     session,
                     new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(5), RemovedCallback = SessionRemoved });
-
-                // TODO: launch application
 
                 _logger.Info(String.Format("New Session Created: {0}", session.SessionId));
 

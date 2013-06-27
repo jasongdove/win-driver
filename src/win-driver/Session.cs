@@ -28,6 +28,7 @@ namespace WinDriver
         public Guid SessionId { get; private set; }
         public string SessionKey { get { return SessionId.ToString("N"); } }
         public Capabilities Capabilities { get; set; }
+        public string Title { get { return _application.GetWindows().First(x => x.IsCurrentlyActive).Title; } }
 
         public void Delete()
         {
@@ -37,6 +38,17 @@ namespace WinDriver
         public IEnumerable<int> GetWindowHandles()
         {
             return _application.GetWindows().Select(x => x.AutomationElement.Current.NativeWindowHandle);
+        }
+
+        public bool SwitchToWindow(string windowName)
+        {
+            var window = _application.GetWindow(windowName);
+            if (window != null)
+            {
+                return NativeMethods.SetForegroundWindow(new IntPtr(window.AutomationElement.Current.NativeWindowHandle));
+            }
+
+            return false;
         }
     }
 }

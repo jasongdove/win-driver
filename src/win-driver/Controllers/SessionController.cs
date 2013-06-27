@@ -122,6 +122,47 @@ namespace WinDriver.Controllers
             return Success(session.SessionId, handles);
         }
 
+        [ActionName("title")]
+        public object GetTitle(string id)
+        {
+            if (String.IsNullOrEmpty(id))
+            {
+                return Invalid(null, InvalidRequest.MissingCommandParameter);
+            }
+
+            if (!SessionCache.Contains(id))
+            {
+                return Invalid(null, InvalidRequest.VariableResourceNotFound);
+            }
+
+            var session = (Session)SessionCache.Get(id);
+            var title = session.Title;
+
+            return Success(session.SessionId, title);
+        }
+
+        [ActionName("window")]
+        public object SwitchToWindow(string id, Dictionary<string, JObject> parameters)
+        {
+            if (String.IsNullOrEmpty(id) || !parameters.ContainsKey("name"))
+            {
+                return Invalid(null, InvalidRequest.MissingCommandParameter);
+            }
+
+            if (!SessionCache.Contains(id))
+            {
+                return Invalid(null, InvalidRequest.VariableResourceNotFound);
+            }
+
+            var session = (Session)SessionCache.Get(id);
+            var name = parameters["name"].Value<string>();
+
+            session.SwitchToWindow(name);
+
+            // TODO: return failure if we aren't able to switch
+            return Success(session.SessionId, null);
+        }
+
         private void SessionRemoved(CacheEntryRemovedArguments args)
         {
             // give the session an opportunity to clean up when it expires

@@ -1,9 +1,9 @@
 ﻿using System.Net.Http.Headers;
 using System.Web.Http.Filters;
 
-namespace WinDriver.ActionFilters
+namespace WinDriver.Filters
 {
-    public class NoCache : ActionFilterAttribute
+    public class NoCacheAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuted(HttpActionExecutedContext actionExecutedContext)
         {

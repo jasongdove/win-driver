@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using White.Core;
+using White.Core.UIItems.Finders;
 
 namespace WinDriver
 {
@@ -22,13 +24,23 @@ namespace WinDriver
             if (Capabilities.App != null)
             {
                 _application = Application.Launch(Capabilities.App);
+                Thread.Sleep(3000);
+                _application.WaitWhileBusy();
             }
         }
 
         public Guid SessionId { get; private set; }
         public string SessionKey { get { return SessionId.ToString("N"); } }
         public Capabilities Capabilities { get; set; }
-        public string Title { get { return _application.GetWindows().First(x => x.IsCurrentlyActive).Title; } }
+        
+        public string Title
+        {
+            get
+            {
+                var window = _application.GetWindows().FirstOrDefault(x => x.IsCurrentlyActive);
+                return window != null ? window.Title : _application.Process.MainWindowTitle;
+            }
+        }
 
         public void Delete()
         {
@@ -49,6 +61,25 @@ namespace WinDriver
             }
 
             return false;
+        }
+
+        public string FindElementByName(string name)
+        {
+            var window = _application.GetWindow(Title);
+
+            var byText = window.GetElement(SearchCriteria.ByText(name));
+            if (byText != null)
+            {
+                return Guid.NewGuid().ToString("N"); // TODO: return element cache
+            }
+
+            var byAutomationId = window.GetElement(SearchCriteria.ByAutomationId(name));
+            if (byAutomationId != null)
+            {
+                return Guid.NewGuid().ToString("N"); // TODO: return element cache
+            }
+
+            return null;
         }
     }
 }

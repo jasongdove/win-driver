@@ -3,26 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Caching;
 using System.Web.Http;
 using Newtonsoft.Json.Linq;
 using Ninject.Extensions.Logging;
+using WinDriver.Repository;
 
 namespace WinDriver.Controllers
 {
     public class SessionController : WebDriverApiController
     {
-        private static readonly MemoryCache SessionCache;
         private readonly ILogger _logger;
+        private readonly ISessionRepository _sessionRepository;
 
-        static SessionController()
-        {
-            SessionCache = new MemoryCache("Sessions");
-        }
-
-        public SessionController(ILogger logger)
+        public SessionController(ILogger logger, ISessionRepository sessionRepository)
         {
             _logger = logger;
+            _sessionRepository = sessionRepository;
         }
 
         [ActionName("DefaultAction")]
@@ -38,14 +34,8 @@ namespace WinDriver.Controllers
                 // TODO: verify that app exists, otherwise return session_not_created
 
                 // TODO: support more desired capabilities, rather than just ignoring them
-                var session = new Session(new Capabilities(parameters["desiredCapabilities"]));
-
-                SessionCache.Add(
-                    session.SessionKey,
-                    session,
-                    new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(5), RemovedCallback = SessionRemoved });
-
-                _logger.Info(String.Format("New Session Created: {0}", session.SessionKey));
+                var desiredCapabilities = new Capabilities(parameters["desiredCapabilities"]);
+                var session = _sessionRepository.Create(desiredCapabilities);
 
                 var response = Request.CreateResponse(HttpStatusCode.RedirectMethod);
                 response.Headers.Location = new Uri(Url.Link("DefaultApiWithId", new { controller = "session", id = session.SessionKey }));
@@ -58,27 +48,17 @@ namespace WinDriver.Controllers
         [ActionName("DefaultAction")]
         public object Get(string id)
         {
-            if (String.IsNullOrEmpty(id))
-            {
-                return Invalid(null, InvalidRequest.MissingCommandParameter);
-            }
-
-            if (!SessionCache.Contains(id))
-            {
-                return Invalid(null, InvalidRequest.VariableResourceNotFound);
-            }
-
-            var session = (Session)SessionCache[id];
+            var session = _sessionRepository.GetById(id);
 
             return Success(session.SessionId, session.Capabilities);
         }
 
         public object GetAll()
         {
-            var allSessions = SessionCache.Select(x => new
+            var allSessions = _sessionRepository.GetAll().Select(x => new
             {
-                id = ((Session)x.Value).SessionKey,
-                capabilities = ((Session)x.Value).Capabilities
+                id = x.SessionKey,
+                capabilities = x.Capabilities
             });
 
             return Success(allSessions);
@@ -87,17 +67,7 @@ namespace WinDriver.Controllers
         [ActionName("DefaultAction")]
         public object Delete(string id)
         {
-            if (String.IsNullOrEmpty(id))
-            {
-                return Invalid(null, InvalidRequest.MissingCommandParameter);
-            }
-
-            if (!SessionCache.Contains(id))
-            {
-                return Invalid(null, InvalidRequest.VariableResourceNotFound);
-            }
-
-            var session = (Session)SessionCache.Remove(id);
+            var session = _sessionRepository.GetById(id);
             session.Delete();
 
             return Success(session.SessionId, null);
@@ -106,17 +76,7 @@ namespace WinDriver.Controllers
         [ActionName("window_handles")]
         public object GetWindowHandles(string id)
         {
-            if (String.IsNullOrEmpty(id))
-            {
-                return Invalid(null, InvalidRequest.MissingCommandParameter);
-            }
-
-            if (!SessionCache.Contains(id))
-            {
-                return Invalid(null, InvalidRequest.VariableResourceNotFound);
-            }
-
-            var session = (Session)SessionCache.Get(id);
+            var session = _sessionRepository.GetById(id);
             var handles = session.GetWindowHandles().ToArray();
 
             return Success(session.SessionId, handles);
@@ -125,17 +85,7 @@ namespace WinDriver.Controllers
         [ActionName("title")]
         public object GetTitle(string id)
         {
-            if (String.IsNullOrEmpty(id))
-            {
-                return Invalid(null, InvalidRequest.MissingCommandParameter);
-            }
-
-            if (!SessionCache.Contains(id))
-            {
-                return Invalid(null, InvalidRequest.VariableResourceNotFound);
-            }
-
-            var session = (Session)SessionCache.Get(id);
+            var session = _sessionRepository.GetById(id);
             var title = session.Title;
 
             return Success(session.SessionId, title);
@@ -144,33 +94,13 @@ namespace WinDriver.Controllers
         [ActionName("window")]
         public object SwitchToWindow(string id, Dictionary<string, JObject> parameters)
         {
-            if (String.IsNullOrEmpty(id) || !parameters.ContainsKey("name"))
-            {
-                return Invalid(null, InvalidRequest.MissingCommandParameter);
-            }
-
-            if (!SessionCache.Contains(id))
-            {
-                return Invalid(null, InvalidRequest.VariableResourceNotFound);
-            }
-
-            var session = (Session)SessionCache.Get(id);
+            var session = _sessionRepository.GetById(id);
             var name = parameters["name"].Value<string>();
 
             session.SwitchToWindow(name);
 
             // TODO: return failure if we aren't able to switch
             return Success(session.SessionId, null);
-        }
-
-        private void SessionRemoved(CacheEntryRemovedArguments args)
-        {
-            // give the session an opportunity to clean up when it expires
-            if (args.RemovedReason == CacheEntryRemovedReason.Expired)
-            {
-                var session = (Session)args.CacheItem.Value;
-                session.Delete();
-            }
         }
     }
 }

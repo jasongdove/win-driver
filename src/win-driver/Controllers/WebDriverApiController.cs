@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Web.Http;
-using Newtonsoft.Json;
-using WinDriver.ActionFilters;
-using WinDriver.Extensions;
+using Ninject;
+using WinDriver.Filters;
+using WinDriver.Repository;
 
 namespace WinDriver.Controllers
 {
     [NoCache]
+    [SessionExceptionFilter]
     public abstract class WebDriverApiController : ApiController
     {
         private const int StatusSuccess = 0;
+
+        [Inject]
+        private IResponseRepository ResponseRepository { get; set; }
 
         protected object Success(object value)
         {
@@ -26,29 +28,7 @@ namespace WinDriver.Controllers
 
         protected HttpResponseMessage Invalid(object request, InvalidRequest reason)
         {
-            var message = new HttpResponseMessage();
-
-            switch (reason)
-            {
-                case InvalidRequest.UnimplementedCommand:
-                    message.StatusCode = HttpStatusCode.NotImplemented;
-                    break;
-                case InvalidRequest.InvalidCommandMethod:
-                    message.StatusCode = HttpStatusCode.MethodNotAllowed;
-                    break;
-                case InvalidRequest.MissingCommandParameter:
-                    message.StatusCode = HttpStatusCode.BadRequest;
-                    break;
-                default:
-                    message.StatusCode = HttpStatusCode.NotFound;
-                    break;
-            }
-
-            message.Content = new StringContent(
-                String.Format("{0} - {1}", reason.Description<InvalidRequest>(), JsonConvert.SerializeObject(request)),
-                Encoding.UTF8);
-
-            return message;
+            return ResponseRepository.Invalid(request, reason);
         }
 
         private object CreateResponse(Guid? sessionId, int status, object value)

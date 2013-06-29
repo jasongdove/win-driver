@@ -120,17 +120,26 @@
     <Reference Include="UIAutomationTypes" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionFilters\NoCache.cs" />
+    <Compile Include="Exceptions\VariableResourceNotFoundException.cs" />
+    <Compile Include="Filters\NoCacheAttribute.cs" />
     <Compile Include="Capabilities.cs" />
+    <Compile Include="Controllers\ElementController.cs" />
     <Compile Include="Controllers\SessionController.cs" />
     <Compile Include="Controllers\ShutdownController.cs" />
+    <Compile Include="Exceptions\MissingCommandParameterException.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Filters\SessionExceptionFilterAttribute.cs" />
     <Compile Include="InvalidRequest.cs" />
+    <Compile Include="Module.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controllers\StatusController.cs" />
     <Compile Include="Controllers\WebDriverApiController.cs" />
+    <Compile Include="Repository\IResponseRepository.cs" />
+    <Compile Include="Repository\ISessionRepository.cs" />
+    <Compile Include="Repository\ResponseRepository.cs" />
+    <Compile Include="Repository\SessionRepository.cs" />
     <Compile Include="Session.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -7,9 +7,11 @@ using System.Reflection;
 using System.Web.Http;
 using System.Web.Http.Routing;
 using System.Web.Http.SelfHost;
+using Castle.Core.Internal;
 using Newtonsoft.Json.Serialization;
 using Ninject;
 using Ninject.Web.Common.SelfHost;
+using WinDriver.Repository;
 
 
 namespace WinDriver
@@ -35,9 +37,20 @@ namespace WinDriver
                 new { httpMethod = new HttpMethodConstraint(HttpMethod.Get) });
 
             config.Routes.MapHttpRoute(
+                "SessionElementPost",
+                "wd/hub/session/{sessionId}/element",
+                new { controller = "Element", action = "Find" },
+                new { httpMethod = new HttpMethodConstraint(HttpMethod.Post) });
+
+            config.Routes.MapHttpRoute(
                 "DefaultApiWithId",
                 "wd/hub/{controller}/{id}/{action}",
                 new { id = RouteParameter.Optional, action = "DefaultAction" });
+
+            config.Routes.MapHttpRoute(
+                "SessionElementAction",
+                "wd/hub/session/{sessionId}/element/{id}/{action}",
+                new { controller = "Element" });
 
             config.Routes.MapHttpRoute(
                 "DefaultApiGet",
@@ -57,10 +70,12 @@ namespace WinDriver
             var jsonFormatter = config.Formatters.OfType<JsonMediaTypeFormatter>().First();
             jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-            using (var server = new NinjectSelfHostBootstrapper(CreateKernel, config))
+            var kernel = CreateKernel();
+            using (var server = new NinjectSelfHostBootstrapper(() => kernel, config))
             {
                 server.Start();
                 Console.ReadLine();
+                kernel.Get<ISessionRepository>().GetAll().ForEach(x => x.Delete());
             }
         }
 

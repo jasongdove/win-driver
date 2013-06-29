@@ -100,17 +100,22 @@
   <ItemGroup>
     <Compile Include="Domain\Capabilities.cs" />
     <Compile Include="Domain\Session.cs" />
-    <Compile Include="Dto\Build.cs" />
-    <Compile Include="Dto\NewSessionRequest.cs" />
-    <Compile Include="Dto\OperatingSystem.cs" />
-    <Compile Include="Dto\SessionRequest.cs" />
-    <Compile Include="Dto\SessionResponse.cs" />
-    <Compile Include="Dto\SessionsRequest.cs" />
-    <Compile Include="Dto\SessionsResponse.cs" />
+    <Compile Include="Dto\Status\Build.cs" />
+    <Compile Include="Dto\Session\NewSessionRequest.cs" />
+    <Compile Include="Dto\Status\OperatingSystem.cs" />
+    <Compile Include="Dto\Session\SessionRequest.cs" />
+    <Compile Include="Dto\Session\SessionResponse.cs" />
+    <Compile Include="Dto\Session\SessionsRequest.cs" />
+    <Compile Include="Dto\Session\SessionsResponse.cs" />
     <Compile Include="Dto\ShutdownRequest.cs" />
-    <Compile Include="Dto\StatusRequest.cs" />
-    <Compile Include="Dto\StatusResponse.cs" />
+    <Compile Include="Dto\Status\StatusRequest.cs" />
+    <Compile Include="Dto\Status\StatusResponse.cs" />
     <Compile Include="Dto\WebDriverResponse.cs" />
+    <Compile Include="Dto\Window\SwitchToWindowRequest.cs" />
+    <Compile Include="Dto\Window\TitleRequest.cs" />
+    <Compile Include="Dto\Window\TitleResponse.cs" />
+    <Compile Include="Dto\Window\WindowHandlesRequest.cs" />
+    <Compile Include="Dto\Window\WindowHandlesResponse.cs" />
     <Compile Include="Exceptions\MissingCommandParameterException.cs" />
     <Compile Include="Exceptions\VariableResourceNotFoundException.cs" />
     <Compile Include="NativeMethods.cs" />
@@ -121,6 +126,7 @@
     <Compile Include="Services\SessionService.cs" />
     <Compile Include="Services\ShutdownService.cs" />
     <Compile Include="Services\StatusService.cs" />
+    <Compile Include="Services\WindowService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

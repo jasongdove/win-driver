@@ -20,6 +20,7 @@ namespace WinDriver
         {
             JsConfig.EmitCamelCaseNames = true;
             JsConfig.IncludeNullValues = true;
+            JsConfig.ExcludeTypeInfo = true;
 
             SetConfig(new EndpointHostConfig
             {

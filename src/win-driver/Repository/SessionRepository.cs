@@ -7,7 +7,7 @@ using WinDriver.Exceptions;
 
 namespace WinDriver.Repository
 {
-    public class SessionRepository : ISessionRepository
+    public sealed class SessionRepository : ISessionRepository
     {
         private readonly MemoryCache _cache;
 
@@ -54,6 +54,15 @@ namespace WinDriver.Repository
             {
                 session.Dispose();
                 _cache.Remove(key);
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (var session in GetAll().ToList())
+            {
+                session.Dispose();
+                _cache.Remove(session.SessionId.ToString("N"));
             }
         }
     }

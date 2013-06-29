@@ -31,11 +31,12 @@ namespace WinDriver
                 DefaultContentType = ContentType.Json,
                 MapExceptionToStatusCode =
                 {
-                    { typeof(VariableResourceNotFoundException), 404 }
+                    { typeof(VariableResourceNotFoundException), 404 }, // not found
+                    { typeof(MissingCommandParameterException), 400 }, // bad request
                 }
             });
 
-            container.RegisterAutoWiredAs<SessionRepository, ISessionRepository>();
+            container.Register<ISessionRepository>(new SessionRepository());
         }
 
         private static void Main(string[] args)
@@ -51,6 +52,9 @@ namespace WinDriver
             appHost.Start(endpoint);
 
             Console.ReadLine();
+
+            var repository = appHost.Container.Resolve<ISessionRepository>();
+            repository.Dispose();
         }
     }
 }

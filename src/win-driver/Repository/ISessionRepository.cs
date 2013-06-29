@@ -4,7 +4,7 @@ using WinDriver.Domain;
 
 namespace WinDriver.Repository
 {
-    public interface ISessionRepository
+    public interface ISessionRepository : IDisposable
     {
         Session Create(Capabilities capabilities);
 

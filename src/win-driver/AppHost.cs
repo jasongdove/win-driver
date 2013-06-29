@@ -25,8 +25,7 @@ namespace WinDriver
                 {
                     { "Cache-Control", "no-cache" }
                 },
-                DefaultContentType = ContentType.Json,
-                EnableFeatures = Feature.All.Remove(Feature.Html),
+                DefaultContentType = ContentType.Json
             });
         }
 

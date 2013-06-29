@@ -100,11 +100,13 @@
   <ItemGroup>
     <Compile Include="Dto\Build.cs" />
     <Compile Include="Dto\OperatingSystem.cs" />
+    <Compile Include="Dto\ShutdownRequest.cs" />
     <Compile Include="Dto\StatusRequest.cs" />
     <Compile Include="Dto\StatusResponse.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="AppHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ShutdownService.cs" />
     <Compile Include="Services\StatusService.cs" />
   </ItemGroup>
   <ItemGroup>

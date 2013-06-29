@@ -4,16 +4,24 @@ namespace WinDriver.Domain
 {
     public class Capabilities
     {
-        private readonly Dictionary<string, object> _capabilities;
-
         public Capabilities(Dictionary<string, object> capabilities)
         {
-            _capabilities = capabilities;
+            if (capabilities.ContainsKey("app"))
+            {
+                App = capabilities["app"] as string;
+            }
         }
 
-        public object Dto
+        public string DriverName
         {
-            get { return _capabilities; }
+            get { return "win-driver"; }
         }
+
+        public string DriverVersion
+        {
+            get { return typeof (AppHost).Assembly.GetName().Version.ToString(); }
+        }
+
+        public string App { get; private set; }
     }
 }

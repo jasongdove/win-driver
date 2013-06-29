@@ -11,7 +11,8 @@ namespace WinDriver
 {
     public class AppHost : AppHostHttpListenerBase
     {
-        public AppHost() : base("win-driver", typeof (AppHost).Assembly)
+        public AppHost()
+            : base("win-driver", typeof (AppHost).Assembly)
         {
         }
 
@@ -42,7 +43,7 @@ namespace WinDriver
             appHost.Init();
 
             string endpoint = String.Format(
-                "http://{0}:{1}/",
+                "http://{0}:{1}/wd/hub/",
                 ConfigurationManager.AppSettings["ip"],
                 ConfigurationManager.AppSettings["port"]);
 

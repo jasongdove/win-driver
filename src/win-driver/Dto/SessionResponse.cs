@@ -8,7 +8,7 @@ namespace WinDriver.Dto
         {
             SessionId = session.SessionId.ToString("N");
             Status = 0;
-            Value = session.Capabilities.Dto;
+            Value = session.Capabilities;
         }
     }
 }

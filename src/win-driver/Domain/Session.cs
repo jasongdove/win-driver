@@ -1,4 +1,5 @@
 ﻿using System;
+using White.Core;
 
 namespace WinDriver.Domain
 {
@@ -7,10 +8,18 @@ namespace WinDriver.Domain
         private readonly Capabilities _capabilities;
         private readonly Guid _sessionId;
 
+        private readonly Application _application;
+
         public Session(Capabilities capabilities)
         {
             _capabilities = capabilities;
             _sessionId = Guid.NewGuid();
+
+            if (_capabilities.App != null)
+            {
+                _application = Application.Launch(Capabilities.App);
+                _application.WaitWhileBusy();
+            }
         }
 
         public Capabilities Capabilities
@@ -25,7 +34,10 @@ namespace WinDriver.Domain
 
         public void Dispose()
         {
-            // TODO: clean up
+            if (_application != null)
+            {
+                _application.Dispose();
+            }
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Configuration;
 using Funq;
-using ServiceStack.Common;
 using ServiceStack.Common.Web;
-using ServiceStack.ServiceHost;
 using ServiceStack.Text;
 using ServiceStack.WebHost.Endpoints;
+using WinDriver.Exceptions;
+using WinDriver.Repository;
 
 namespace WinDriver
 {
@@ -18,6 +18,7 @@ namespace WinDriver
         public override void Configure(Container container)
         {
             JsConfig.EmitCamelCaseNames = true;
+            JsConfig.IncludeNullValues = true;
 
             SetConfig(new EndpointHostConfig
             {
@@ -25,8 +26,14 @@ namespace WinDriver
                 {
                     { "Cache-Control", "no-cache" }
                 },
-                DefaultContentType = ContentType.Json
+                DefaultContentType = ContentType.Json,
+                MapExceptionToStatusCode =
+                {
+                    { typeof(VariableResourceNotFoundException), 404 }
+                }
             });
+
+            container.RegisterAutoWiredAs<SessionRepository, ISessionRepository>();
         }
 
         private static void Main(string[] args)

@@ -142,6 +142,12 @@ namespace WinDriver.Domain
                             var comboBox = new ComboBox(automationElement, window);
                             return comboBox.Items.Select(x => _elementRepository.Add(new ListItemElement(element, comboBox.Items.IndexOf(x))));
                         }
+                        
+                        if (automationElement.Current.ControlType.Id == ControlType.List.Id)
+                        {
+                            var listBox = new ListBox(automationElement, window);
+                            return listBox.Items.Select(x => _elementRepository.Add(new ListItemElement(element, listBox.Items.IndexOf(x))));
+                        }
                     }
                     criteria.Add(SearchCriteria.ByControlType(controlType));
                     break;

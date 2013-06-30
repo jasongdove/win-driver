@@ -6,19 +6,19 @@ namespace WinDriver.Domain
 {
     public class ListItemElement : Element
     {
-        private readonly Element _comboBoxElement;
+        private readonly Element _listElement;
         private readonly int _index;
 
-        public ListItemElement(Element comboBoxElement, int index)
+        public ListItemElement(Element listElement, int index)
         {
-            _comboBoxElement = comboBoxElement;
+            _listElement = listElement;
             _index = index;
         }
 
         public override AutomationElement GetAutomationElement(ActionListener actionListener)
         {
-            var comboBox = new ComboBox(_comboBoxElement.GetAutomationElement(actionListener), actionListener);
-            return comboBox.Items[_index].AutomationElement;
+            var list = new ListControl(_listElement.GetAutomationElement(actionListener), actionListener);
+            return list.Items[_index].AutomationElement;
         }
     }
 }

@@ -9,16 +9,18 @@ namespace WinDriver.Repository
 {
     public sealed class SessionRepository : ISessionRepository
     {
+        private readonly IElementRepository _elementRepository;
         private readonly MemoryCache _cache;
 
-        public SessionRepository()
+        public SessionRepository(IElementRepository elementRepository)
         {
+            _elementRepository = elementRepository;
             _cache = new MemoryCache("Sessions");
         }
 
         public Session Create(Capabilities capabilities)
         {
-            var session = new Session(capabilities);
+            var session = new Session(_elementRepository, capabilities);
 
             _cache.Add(
                 session.SessionId.ToString("N"),

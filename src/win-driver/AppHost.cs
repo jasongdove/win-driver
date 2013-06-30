@@ -36,7 +36,8 @@ namespace WinDriver
                 }
             });
 
-            container.Register<ISessionRepository>(new SessionRepository());
+            container.Register<IElementRepository>(new ElementRepository());
+            container.Register<ISessionRepository>(new SessionRepository(container.Resolve<IElementRepository>()));
         }
 
         private static void Main(string[] args)

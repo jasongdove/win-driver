@@ -1,11 +1,14 @@
 ﻿using System;
+using WinDriver.Domain;
 
 namespace WinDriver.Repository
 {
     public interface IElementRepository
     {
-        Guid Add(int handle);
+        Guid AddByHandle(int handle);
 
-        int GetById(Guid id);
+        Guid Add(Element element);
+
+        Element GetById(Guid id);
     }
 }

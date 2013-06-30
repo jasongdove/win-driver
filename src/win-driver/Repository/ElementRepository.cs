@@ -1,34 +1,41 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using WinDriver.Domain;
 using WinDriver.Exceptions;
 
 namespace WinDriver.Repository
 {
     public class ElementRepository : IElementRepository
     {
-        private readonly ConcurrentDictionary<Guid, int> _cache;
+        private readonly ConcurrentDictionary<Guid, Element> _cache;
 
         public ElementRepository()
         {
-            _cache = new ConcurrentDictionary<Guid, int>();
+            _cache = new ConcurrentDictionary<Guid, Element>();
         }
 
-        public Guid Add(int handle)
+        public Guid AddByHandle(int handle)
+        {
+            var element = new Element(handle);
+            return Add(element);
+        }
+
+        public Guid Add(Element element)
         {
             var key = Guid.NewGuid();
-            _cache.AddOrUpdate(key, handle, (x, oldValue) => handle);
+            _cache.AddOrUpdate(key, element, (x, oldValue) => element);
             return key;
         }
 
-        public int GetById(Guid id)
+        public Element GetById(Guid id)
         {
-            int handle;
-            if (!_cache.TryGetValue(id, out handle))
+            Element element;
+            if (!_cache.TryGetValue(id, out element))
             {
                 throw new VariableResourceNotFoundException();
             }
 
-            return handle;
+            return element;
         }
     }
 }

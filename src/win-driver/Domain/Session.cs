@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Windows.Automation;
 using White.Core;
 using White.Core.Factory;
-using White.Core.InputDevices;
 using White.Core.UIItems;
 using White.Core.UIItems.Finders;
 using White.Core.UIItems.ListBoxItems;
-using White.Core.WindowsAPI;
 using WinDriver.Exceptions;
 using WinDriver.Repository;
 
@@ -18,21 +15,20 @@ namespace WinDriver.Domain
 {
     public sealed class Session : IDisposable
     {
+        private readonly IElementRepository _elementRepository;
         private readonly Capabilities _capabilities;
         private readonly Guid _sessionId;
-        private readonly IElementRepository _elementRepository;
-
         private readonly Application _application;
 
-        public Session(Capabilities capabilities)
+        public Session(IElementRepository elementRepository, Capabilities capabilities)
         {
+            _elementRepository = elementRepository;
             _capabilities = capabilities;
             _sessionId = Guid.NewGuid();
 
             // TODO: inject this somehow
-            _elementRepository = new ElementRepository();
 
-            if (_capabilities.App != null)
+            if (Capabilities.App != null)
             {
                 _application = Application.Launch(Capabilities.App);
 
@@ -112,7 +108,7 @@ namespace WinDriver.Domain
                 var element = window.GetElement(searchCriteria);
                 if (element != null)
                 {
-                    return _elementRepository.Add(element.Current.NativeWindowHandle);
+                    return _elementRepository.AddByHandle(element.Current.NativeWindowHandle);
                 }
             }
 
@@ -135,19 +131,16 @@ namespace WinDriver.Domain
                     var controlType = MapControlType(value);
                     if (controlType.Id == ControlType.ListItem.Id && elementId.HasValue)
                     {
-                        var elementHandle = _elementRepository.GetById(elementId.Value);
-                        var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
-                        if (element.Current.ControlType.Id == ControlType.ComboBox.Id)
+                        var element = _elementRepository.GetById(elementId.Value);
+                        var automationElement = element.GetAutomationElement(window);
+                        if (automationElement.Current.ControlType.Id == ControlType.ComboBox.Id)
                         {
                             // this is the one combo box case that's "easy" to support
                             // if we're looking for list items, and given a combo box
                             // pop open the combo box, return all items, and leave the
                             // combo box open so the handles don't become invalid
-                            var comboBox = new ComboBox(element, window);
-                            comboBox.Click(); // open()?
-
-                            var handles = comboBox.Items.Select(x => x.AutomationElement.Current.NativeWindowHandle);
-                            return handles.Select(x => _elementRepository.Add(x));
+                            var comboBox = new ComboBox(automationElement, window);
+                            return comboBox.Items.Select(x => _elementRepository.Add(new ListItemElement(element, comboBox.Items.IndexOf(x))));
                         }
                     }
                     criteria.Add(SearchCriteria.ByControlType(controlType));
@@ -180,43 +173,44 @@ namespace WinDriver.Domain
         {
             // TODO: support modifier keys
 
-            var elementHandle = _elementRepository.GetById(elementId);
+            var element = _elementRepository.GetById(elementId);
             var window = _application.GetWindow(Title);
-            var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
-            if (element == null)
+            var automationElement = element.GetAutomationElement(window);
+            if (automationElement == null)
             {
                 throw new VariableResourceNotFoundException();
             }
 
-            var item = new UIItem(element, window.ActionListener);
+            var item = new UIItem(automationElement, window);
             item.Enter(new String(keys));
         }
 
         public void Click(Guid elementId)
         {
-            var elementHandle = _elementRepository.GetById(elementId);
+            var element = _elementRepository.GetById(elementId);
             var window = _application.GetWindow(Title);
-            var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
-            if (element == null)
+            var automationElement = element.GetAutomationElement(window);
+            if (automationElement == null)
             {
                 throw new VariableResourceNotFoundException();
             }
 
-            var item = new UIItem(element, window.ActionListener);
+            var item = new UIItem(automationElement, window);
             item.Click();
         }
 
         public string GetElementName(Guid elementId)
         {
-            var elementHandle = _elementRepository.GetById(elementId);
-            var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
-            if (element == null)
+            var element = _elementRepository.GetById(elementId);
+            var window = _application.GetWindow(Title);
+            var automationElement = element.GetAutomationElement(window);
+            if (automationElement == null)
             {
                 throw new VariableResourceNotFoundException(); // TODO: stale element reference
             }
 
             // TODO: support more control types
-            var controlType = (ControlType)element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty);
+            var controlType = (ControlType)automationElement.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty);
             if (controlType.Id == ControlType.ComboBox.Id)
             {
                 return "select";
@@ -227,18 +221,19 @@ namespace WinDriver.Domain
 
         public string GetElementAttribute(Guid elementId, string attribute)
         {
-            var elementHandle = _elementRepository.GetById(elementId);
-            var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
-            if (element == null)
+            var element = _elementRepository.GetById(elementId);
+            var window = _application.GetWindow(Title);
+            var automationElement = element.GetAutomationElement(window);
+            if (automationElement == null)
             {
                 throw new VariableResourceNotFoundException(); // TODO: stale element reference
             }
 
             // TODO: support more control types/attributes
-            var controlType = (ControlType)element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty);
+            var controlType = (ControlType)automationElement.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty);
             if (controlType.Id == ControlType.ComboBox.Id)
             {
-                var selectionPattern = (SelectionPattern)element.GetCurrentPattern(SelectionPattern.Pattern);
+                var selectionPattern = (SelectionPattern)automationElement.GetCurrentPattern(SelectionPattern.Pattern);
                 //var comboBox = new ComboBox(element, window);
                 switch (attribute.ToLowerInvariant())
                 {
@@ -252,15 +247,16 @@ namespace WinDriver.Domain
 
         public string GetElementText(Guid elementId)
         {
-            var elementHandle = _elementRepository.GetById(elementId);
-            var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
-            if (element == null)
+            var element = _elementRepository.GetById(elementId);
+            var window = _application.GetWindow(Title);
+            var automationElement = element.GetAutomationElement(window);
+            if (automationElement == null)
             {
                 throw new VariableResourceNotFoundException(); // TODO: stale element reference
             }
 
             // TODO: is this correct for controls other than ListItem?
-            return element.Current.Name;
+            return automationElement.Current.Name;
         }
 
         public void Dispose()
@@ -271,13 +267,13 @@ namespace WinDriver.Domain
             }
         }
 
-        private IList<Guid> FindElements(IUIItemContainer container, SearchCriteria criteria)
+        private IEnumerable<Guid> FindElements(IUIItemContainer container, SearchCriteria criteria)
         {
             var results = container.GetMultiple(criteria);
             if (results != null && results.Any())
             {
                 var handles = results.Select(x => x.AutomationElement.Current.NativeWindowHandle);
-                return handles.Select(handle => _elementRepository.Add(handle)).ToList();
+                return handles.Select(handle => _elementRepository.AddByHandle(handle)).ToList();
             }
 
             return new List<Guid>();

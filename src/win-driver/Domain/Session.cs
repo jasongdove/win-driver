@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows.Automation;
 using White.Core;
 using White.Core.Factory;
+using White.Core.InputDevices;
 using White.Core.UIItems;
 using White.Core.UIItems.Finders;
 using White.Core.UIItems.ListBoxItems;
@@ -68,6 +69,12 @@ namespace WinDriver.Domain
             return _application.GetWindows().Select(x => x.AutomationElement.Current.NativeWindowHandle);
         }
 
+        public int GetWindowHandle()
+        {
+            var window = _application.GetWindows().FirstOrDefault(x => x.IsCurrentlyActive);
+            return window != null ? window.AutomationElement.Current.NativeWindowHandle : (int)_application.Process.MainWindowHandle;
+        }
+
         public bool SwitchToWindow(string title)
         {
             try
@@ -81,20 +88,89 @@ namespace WinDriver.Domain
             }
         }
 
-        public Guid FindElementByName(string name)
+        public Guid FindElement(string locator, string value)
         {
             var window = _application.GetWindow(Title);
 
-            var byText = window.GetElement(SearchCriteria.ByText(name));
-            if (byText != null)
+            var criteria = new List<SearchCriteria>();
+
+            switch (locator.ToLowerInvariant())
             {
-                return _elementRepository.Add(byText.Current.NativeWindowHandle);
+                case "name":
+                    criteria.Add(SearchCriteria.ByText(value));
+                    criteria.Add(SearchCriteria.ByAutomationId(value));
+                    break;
+                case "id":
+                    criteria.Add(SearchCriteria.ByAutomationId(value));
+                    break;
+                default:
+                    throw new VariableResourceNotFoundException(); // TODO: should this be method not supported?
             }
 
-            var byAutomationId = window.GetElement(SearchCriteria.ByAutomationId(name));
-            if (byAutomationId != null)
+            foreach (var searchCriteria in criteria)
             {
-                return _elementRepository.Add(byAutomationId.Current.NativeWindowHandle);
+                var element = window.GetElement(searchCriteria);
+                if (element != null)
+                {
+                    return _elementRepository.Add(element.Current.NativeWindowHandle);
+                }
+            }
+
+            throw new VariableResourceNotFoundException();
+        }
+
+        public IEnumerable<Guid> FindElements(string locator, string value, Guid? elementId)
+        {
+            var window = _application.GetWindow(Title);
+            var containers = new List<IUIItemContainer> { window };
+
+            var criteria = new List<SearchCriteria>();
+            switch (locator.ToLowerInvariant())
+            {
+                case "name":
+                    criteria.Add(SearchCriteria.ByText(value));
+                    criteria.Add(SearchCriteria.ByAutomationId(value));
+                    break;
+                case "tag name":
+                    var controlType = MapControlType(value);
+                    if (controlType.Id == ControlType.ListItem.Id && elementId.HasValue)
+                    {
+                        var elementHandle = _elementRepository.GetById(elementId.Value);
+                        var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
+                        if (element.Current.ControlType.Id == ControlType.ComboBox.Id)
+                        {
+                            // this is the one combo box case that's "easy" to support
+                            // if we're looking for list items, and given a combo box
+                            // pop open the combo box, return all items, and leave the
+                            // combo box open so the handles don't become invalid
+                            var comboBox = new ComboBox(element, window);
+                            comboBox.Click(); // open()?
+
+                            var handles = comboBox.Items.Select(x => x.AutomationElement.Current.NativeWindowHandle);
+                            return handles.Select(x => _elementRepository.Add(x));
+                        }
+                    }
+                    criteria.Add(SearchCriteria.ByControlType(controlType));
+                    break;
+                case "id":
+                    criteria.Add(SearchCriteria.ByAutomationId(value));
+                    break;
+                default:
+                    throw new VariableResourceNotFoundException(); // TODO: should this be method not supported?
+            }
+
+            var allElementIds = new List<Guid>();
+            foreach (var container in containers)
+            {
+                foreach (var searchCriteria in criteria)
+                {
+                    allElementIds.AddRange(FindElements(container, searchCriteria));
+                }
+            }
+
+            if (allElementIds.Any())
+            {
+                return allElementIds;
             }
 
             throw new VariableResourceNotFoundException();
@@ -113,19 +189,21 @@ namespace WinDriver.Domain
             }
 
             var item = new UIItem(element, window.ActionListener);
-            foreach (var key in keys)
+            item.Enter(new String(keys));
+        }
+
+        public void Click(Guid elementId)
+        {
+            var elementHandle = _elementRepository.GetById(elementId);
+            var window = _application.GetWindow(Title);
+            var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
+            if (element == null)
             {
-                switch (key)
-                {
-                    case '\ue006': // return
-                    case '\ue007': // enter
-                        item.KeyIn(KeyboardInput.SpecialKeys.RETURN);
-                        break;
-                    default:
-                        item.Enter(key.ToString(CultureInfo.InvariantCulture));
-                        break;
-                }
+                throw new VariableResourceNotFoundException();
             }
+
+            var item = new UIItem(element, window.ActionListener);
+            item.Click();
         }
 
         public string GetElementName(Guid elementId)
@@ -172,11 +250,48 @@ namespace WinDriver.Domain
             return null;
         }
 
+        public string GetElementText(Guid elementId)
+        {
+            var elementHandle = _elementRepository.GetById(elementId);
+            var element = AutomationElement.FromHandle(new IntPtr(elementHandle));
+            if (element == null)
+            {
+                throw new VariableResourceNotFoundException(); // TODO: stale element reference
+            }
+
+            // TODO: is this correct for controls other than ListItem?
+            return element.Current.Name;
+        }
+
         public void Dispose()
         {
             if (_application != null)
             {
                 _application.Dispose();
+            }
+        }
+
+        private IList<Guid> FindElements(IUIItemContainer container, SearchCriteria criteria)
+        {
+            var results = container.GetMultiple(criteria);
+            if (results != null && results.Any())
+            {
+                var handles = results.Select(x => x.AutomationElement.Current.NativeWindowHandle);
+                return handles.Select(handle => _elementRepository.Add(handle)).ToList();
+            }
+
+            return new List<Guid>();
+        }
+
+        private ControlType MapControlType(string tagName)
+        {
+            // TODO: support more control types/tag names
+            switch (tagName.ToLowerInvariant())
+            {
+                case "option":
+                    return ControlType.ListItem;
+                default:
+                    throw new NotSupportedException();
             }
         }
     }

@@ -101,11 +101,15 @@
   <ItemGroup>
     <Compile Include="Domain\Capabilities.cs" />
     <Compile Include="Domain\Session.cs" />
+    <Compile Include="Dto\Element\ClickElementRequest.cs" />
     <Compile Include="Dto\Element\Element.cs" />
     <Compile Include="Dto\Element\ElementAttributeRequest.cs" />
     <Compile Include="Dto\Element\ElementNameRequest.cs" />
+    <Compile Include="Dto\Element\ElementTextRequest.cs" />
     <Compile Include="Dto\Element\LocateElementRequest.cs" />
     <Compile Include="Dto\Element\LocateElementResponse.cs" />
+    <Compile Include="Dto\Element\LocateElementsRequest.cs" />
+    <Compile Include="Dto\Element\LocateElementsResponse.cs" />
     <Compile Include="Dto\Element\SendKeysRequest.cs" />
     <Compile Include="Dto\Status\Build.cs" />
     <Compile Include="Dto\Session\NewSessionRequest.cs" />
@@ -121,6 +125,7 @@
     <Compile Include="Dto\Window\SwitchToWindowRequest.cs" />
     <Compile Include="Dto\Window\TitleRequest.cs" />
     <Compile Include="Dto\Window\TitleResponse.cs" />
+    <Compile Include="Dto\Window\WindowHandleRequest.cs" />
     <Compile Include="Dto\Window\WindowHandlesRequest.cs" />
     <Compile Include="Dto\Window\WindowHandlesResponse.cs" />
     <Compile Include="Exceptions\MissingCommandParameterException.cs" />

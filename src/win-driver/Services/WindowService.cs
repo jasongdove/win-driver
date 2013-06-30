@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using ServiceStack.ServiceInterface;
 using WinDriver.Dto;
@@ -41,6 +42,16 @@ namespace WinDriver.Services
 
             // TODO: return failure if we aren't able to switch
             return new WebDriverResponse(session) { Status = 0 };
+        }
+
+        public WebDriverResponse Get(WindowHandleRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+            return new WebDriverResponse(session)
+            {
+                Status = 0,
+                Value = session.GetWindowHandle().ToString(CultureInfo.InvariantCulture)
+            };
         }
     }
 }

@@ -25,20 +25,34 @@ namespace WinDriver.Services
                 throw new MissingCommandParameterException();
             }
 
-            switch (request.Using.ToUpperInvariant())
+            var elementId = session.FindElement(request.Using, request.Value);
+            return new LocateElementResponse(session, elementId);
+        }
+
+        public LocateElementsResponse Post(LocateElementsRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+
+            if (String.IsNullOrEmpty(request.Using) || String.IsNullOrEmpty(request.Value))
             {
-                case "NAME":
-                    var elementId = session.FindElementByName(request.Value);
-                    return new LocateElementResponse(session, elementId);
-                default:
-                    throw new VariableResourceNotFoundException(); // TODO: should this be method not supported?
+                throw new MissingCommandParameterException();
             }
+
+            var elementIds = session.FindElements(request.Using, request.Value, request.ElementId);
+            return new LocateElementsResponse(session, elementIds);
         }
 
         public WebDriverResponse Post(SendKeysRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
             session.SendKeys(request.ElementId, request.Value);
+            return new WebDriverResponse(session) { Status = 0 };
+        }
+
+        public WebDriverResponse Post(ClickElementRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+            session.Click(request.ElementId);
             return new WebDriverResponse(session) { Status = 0 };
         }
 
@@ -53,6 +67,13 @@ namespace WinDriver.Services
         {
             var session = _sessionRepository.GetById(request.SessionId);
             var value = session.GetElementAttribute(request.ElementId, request.Name);
+            return new WebDriverResponse(session) { Status = 0, Value = value };
+        }
+
+        public WebDriverResponse Get(ElementTextRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+            var value = session.GetElementText(request.ElementId);
             return new WebDriverResponse(session) { Status = 0, Value = value };
         }
     }

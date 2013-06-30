@@ -185,6 +185,20 @@ namespace WinDriver.Domain
             item.Enter(new String(keys));
         }
 
+        public void Clear(Guid elementId)
+        {
+            var element = _elementRepository.GetById(elementId);
+            var window = _application.GetWindow(Title);
+            var automationElement = element.GetAutomationElement(window);
+            if (automationElement == null)
+            {
+                throw new VariableResourceNotFoundException();
+            }
+
+            var item = new UIItem(automationElement, window);
+            item.Enter(String.Empty);
+        }
+
         public void Click(Guid elementId)
         {
             var element = _elementRepository.GetById(elementId);

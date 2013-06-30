@@ -56,6 +56,13 @@ namespace WinDriver.Services
             return new WebDriverResponse(session) { Status = 0 };
         }
 
+        public WebDriverResponse Post(ClearElementRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+            session.Clear(request.ElementId);
+            return new WebDriverResponse(session) { Status = 0 };
+        }
+
         public WebDriverResponse Get(ElementNameRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);

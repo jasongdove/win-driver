@@ -103,6 +103,7 @@
     <Compile Include="Domain\Element.cs" />
     <Compile Include="Domain\ListItemElement.cs" />
     <Compile Include="Domain\Session.cs" />
+    <Compile Include="Dto\Element\ClearElementRequest.cs" />
     <Compile Include="Dto\Element\ClickElementRequest.cs" />
     <Compile Include="Dto\Element\Element.cs" />
     <Compile Include="Dto\Element\ElementAttributeRequest.cs" />

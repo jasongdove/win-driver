@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
+using ServiceStack.Logging;
 using WinDriver.Domain;
 using WinDriver.Exceptions;
 
@@ -9,18 +10,20 @@ namespace WinDriver.Repository
 {
     public sealed class SessionRepository : ISessionRepository
     {
+        private readonly ILog _log;
         private readonly IElementRepository _elementRepository;
         private readonly MemoryCache _cache;
 
-        public SessionRepository(IElementRepository elementRepository)
+        public SessionRepository(ILog log, IElementRepository elementRepository)
         {
+            _log = log;
             _elementRepository = elementRepository;
             _cache = new MemoryCache("Sessions");
         }
 
         public Session Create(Capabilities capabilities)
         {
-            var session = new Session(_elementRepository, capabilities);
+            var session = new Session(_log, _elementRepository, capabilities);
 
             _cache.Add(
                 session.SessionId.ToString("N"),

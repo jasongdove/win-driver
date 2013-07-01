@@ -2,6 +2,8 @@
 using System.Configuration;
 using Funq;
 using ServiceStack.Common.Web;
+using ServiceStack.Logging;
+using ServiceStack.Logging.Support.Logging;
 using ServiceStack.Text;
 using ServiceStack.WebHost.Endpoints;
 using WinDriver.Exceptions;
@@ -18,6 +20,8 @@ namespace WinDriver
 
         public override void Configure(Container container)
         {
+            LogManager.LogFactory = new ConsoleLogFactory();
+
             JsConfig.EmitCamelCaseNames = true;
             JsConfig.IncludeNullValues = true;
             JsConfig.ExcludeTypeInfo = true;
@@ -36,8 +40,9 @@ namespace WinDriver
                 }
             });
 
+            container.Register<ILog>(x => LogManager.LogFactory.GetLogger("win-driver"));
             container.Register<IElementRepository>(new ElementRepository());
-            container.Register<ISessionRepository>(new SessionRepository(container.Resolve<IElementRepository>()));
+            container.Register<ISessionRepository>(new SessionRepository(container.Resolve<ILog>(), container.Resolve<IElementRepository>()));
         }
 
         private static void Main(string[] args)

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Windows;
 using System.Windows.Automation;
+using ServiceStack.Logging;
 using White.Core;
 using White.Core.Factory;
 using White.Core.InputDevices;
@@ -17,13 +17,15 @@ namespace WinDriver.Domain
 {
     public sealed class Session : IDisposable
     {
+        private readonly ILog _log;
         private readonly IElementRepository _elementRepository;
         private readonly Capabilities _capabilities;
         private readonly Guid _sessionId;
         private readonly Application _application;
 
-        public Session(IElementRepository elementRepository, Capabilities capabilities)
+        public Session(ILog log, IElementRepository elementRepository, Capabilities capabilities)
         {
+            _log = log;
             _elementRepository = elementRepository;
             _capabilities = capabilities;
             _sessionId = Guid.NewGuid();
@@ -55,11 +57,7 @@ namespace WinDriver.Domain
 
         public string Title
         {
-            get
-            {
-                var window = _application.GetWindows().FirstOrDefault(x => x.IsCurrentlyActive);
-                return window != null ? window.Title : _application.Process.MainWindowTitle;
-            }
+            get { return _application.Process.MainWindowTitle; }
         }
 
         public IEnumerable<int> GetWindowHandles()
@@ -69,8 +67,7 @@ namespace WinDriver.Domain
 
         public int GetWindowHandle()
         {
-            var window = _application.GetWindows().FirstOrDefault(x => x.IsCurrentlyActive);
-            return window != null ? window.AutomationElement.Current.NativeWindowHandle : (int)_application.Process.MainWindowHandle;
+            return _application.Process.MainWindowHandle.ToInt32();
         }
 
         public bool SwitchToWindow(string title)
@@ -197,11 +194,8 @@ namespace WinDriver.Domain
 
         public void Click(Guid elementId)
         {
-            var window = _application.GetWindow(Title);
             var automationElement = GetAutomationElement(elementId);
-
-            var item = new UIItem(automationElement, window);
-            item.Click();
+            Mouse.Instance.Click(automationElement.GetClickablePoint());
         }
 
         public void DoubleClick()

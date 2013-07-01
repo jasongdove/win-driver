@@ -65,5 +65,19 @@ namespace WinDriver.Services
             response.AddRange(_sessionRepository.GetAll().Select(x => new SessionResponse(x)));
             return response;
         }
+
+        public WebDriverResponse Post(MoveToRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+            session.MoveTo(request.Element, request.XOffset, request.YOffset);
+            return new WebDriverResponse(session) { Status = 0 };
+        }
+
+        public WebDriverResponse Post(DoubleClickRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+            session.DoubleClick();
+            return new WebDriverResponse(session) { Status = 0 };
+        }
     }
 }

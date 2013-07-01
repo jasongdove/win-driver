@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Windows;
 using System.Windows.Automation;
 using White.Core;
 using White.Core.Factory;
+using White.Core.InputDevices;
 using White.Core.UIItems;
 using White.Core.UIItems.Finders;
 using White.Core.UIItems.ListBoxItems;
@@ -179,13 +181,8 @@ namespace WinDriver.Domain
         {
             // TODO: support modifier keys
 
-            var element = _elementRepository.GetById(elementId);
             var window = _application.GetWindow(Title);
-            var automationElement = element.GetAutomationElement(window);
-            if (automationElement == null)
-            {
-                throw new VariableResourceNotFoundException();
-            }
+            var automationElement = GetAutomationElement(elementId);
 
             var item = new UIItem(automationElement, window);
             item.Enter(new String(keys));
@@ -193,13 +190,8 @@ namespace WinDriver.Domain
 
         public void Clear(Guid elementId)
         {
-            var element = _elementRepository.GetById(elementId);
             var window = _application.GetWindow(Title);
-            var automationElement = element.GetAutomationElement(window);
-            if (automationElement == null)
-            {
-                throw new VariableResourceNotFoundException();
-            }
+            var automationElement = GetAutomationElement(elementId);
 
             var item = new UIItem(automationElement, window);
             item.Enter(String.Empty);
@@ -207,27 +199,21 @@ namespace WinDriver.Domain
 
         public void Click(Guid elementId)
         {
-            var element = _elementRepository.GetById(elementId);
             var window = _application.GetWindow(Title);
-            var automationElement = element.GetAutomationElement(window);
-            if (automationElement == null)
-            {
-                throw new VariableResourceNotFoundException();
-            }
+            var automationElement = GetAutomationElement(elementId);
 
             var item = new UIItem(automationElement, window);
             item.Click();
         }
 
+        public void DoubleClick()
+        {
+            Mouse.Instance.DoubleClick(Mouse.Instance.Location);
+        }
+
         public string GetElementName(Guid elementId)
         {
-            var element = _elementRepository.GetById(elementId);
-            var window = _application.GetWindow(Title);
-            var automationElement = element.GetAutomationElement(window);
-            if (automationElement == null)
-            {
-                throw new VariableResourceNotFoundException(); // TODO: stale element reference
-            }
+            var automationElement = GetAutomationElement(elementId);
 
             // TODO: support more control types
             var controlType = (ControlType)automationElement.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty);
@@ -241,13 +227,7 @@ namespace WinDriver.Domain
 
         public string GetElementAttribute(Guid elementId, string attribute)
         {
-            var element = _elementRepository.GetById(elementId);
-            var window = _application.GetWindow(Title);
-            var automationElement = element.GetAutomationElement(window);
-            if (automationElement == null)
-            {
-                throw new VariableResourceNotFoundException(); // TODO: stale element reference
-            }
+            var automationElement = GetAutomationElement(elementId);
 
             // TODO: support more control types/attributes
             var controlType = (ControlType)automationElement.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty);
@@ -267,16 +247,37 @@ namespace WinDriver.Domain
 
         public string GetElementText(Guid elementId)
         {
-            var element = _elementRepository.GetById(elementId);
-            var window = _application.GetWindow(Title);
-            var automationElement = element.GetAutomationElement(window);
-            if (automationElement == null)
-            {
-                throw new VariableResourceNotFoundException(); // TODO: stale element reference
-            }
+            var automationElement = GetAutomationElement(elementId);
 
             // TODO: is this correct for controls other than ListItem?
             return automationElement.Current.Name;
+        }
+
+        public void MoveTo(Guid? elementId, int? xOffset, int? yOffset)
+        {
+            var point = Mouse.Instance.Location;
+            double x = 0, y = 0;
+            if (elementId.HasValue)
+            {
+                var automationElement = GetAutomationElement(elementId.Value);
+                point = automationElement.Current.BoundingRectangle.TopLeft;
+                x = automationElement.Current.BoundingRectangle.Width / 2;
+                y = automationElement.Current.BoundingRectangle.Height / 2;
+            }
+
+            if (xOffset.HasValue)
+            {
+                x = xOffset.Value;
+            }
+
+            if (yOffset.HasValue)
+            {
+                y = yOffset.Value;
+            }
+
+            point.Offset(x, y);
+
+            Mouse.Instance.Location = point;
         }
 
         public void Dispose()
@@ -309,6 +310,19 @@ namespace WinDriver.Domain
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private AutomationElement GetAutomationElement(Guid elementId)
+        {
+            var element = _elementRepository.GetById(elementId);
+            var window = _application.GetWindow(Title);
+            var automationElement = element.GetAutomationElement(window);
+            if (automationElement == null)
+            {
+                throw new VariableResourceNotFoundException(); // TODO: stale element reference
+            }
+
+            return automationElement;
         }
     }
 }

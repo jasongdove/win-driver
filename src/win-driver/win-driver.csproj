@@ -99,6 +99,7 @@
     </Reference>
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain\Capabilities.cs" />
@@ -116,6 +117,8 @@
     <Compile Include="Dto\Element\LocateElementsRequest.cs" />
     <Compile Include="Dto\Element\LocateElementsResponse.cs" />
     <Compile Include="Dto\Element\SendKeysRequest.cs" />
+    <Compile Include="Dto\Session\DoubleClickRequest.cs" />
+    <Compile Include="Dto\Session\MoveToRequest.cs" />
     <Compile Include="Dto\Status\Build.cs" />
     <Compile Include="Dto\Session\NewSessionRequest.cs" />
     <Compile Include="Dto\Status\OperatingSystem.cs" />

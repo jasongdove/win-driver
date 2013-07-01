@@ -137,16 +137,14 @@ namespace WinDriver.Domain
                         var automationElement = element.GetAutomationElement(window);
                         if (automationElement.Current.ControlType.Id == ControlType.ComboBox.Id)
                         {
-                            // this is the one combo box case that's "easy" to support
-                            // if we're looking for list items, and given a combo box
-                            // pop open the combo box, return all items, and leave the
-                            // combo box open so the handles don't become invalid
+                            // return all list items contained within the combo box [elementId]
                             var comboBox = new ComboBox(automationElement, window);
                             return comboBox.Items.Select(x => _elementRepository.Add(new ListItemElement(element, comboBox.Items.IndexOf(x))));
                         }
                         
                         if (automationElement.Current.ControlType.Id == ControlType.List.Id)
                         {
+                            // return all list items contained within the list box [elementId]
                             var listBox = new ListBox(automationElement, window);
                             return listBox.Items.Select(x => _elementRepository.Add(new ListItemElement(element, listBox.Items.IndexOf(x))));
                         }

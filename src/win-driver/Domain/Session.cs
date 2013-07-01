@@ -86,7 +86,7 @@ namespace WinDriver.Domain
             }
         }
 
-        public Guid FindElement(string locator, string value)
+        public Guid FindElement(string locator, string value, Guid? elementId)
         {
             var window = _application.GetWindow(Title);
 

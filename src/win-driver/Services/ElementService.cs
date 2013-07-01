@@ -25,7 +25,7 @@ namespace WinDriver.Services
                 throw new MissingCommandParameterException();
             }
 
-            var elementId = session.FindElement(request.Using, request.Value);
+            var elementId = session.FindElement(request.Using, request.Value, request.ElementId);
             return new LocateElementResponse(session, elementId);
         }
 

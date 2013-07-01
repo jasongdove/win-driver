@@ -4,7 +4,7 @@ using ServiceStack.ServiceHost;
 namespace WinDriver.Dto.Element
 {
     [Route("/session/{sessionId}/elements", "POST")]
-    [Route("/session/{sessionId}/element/{elementId}/elements", "POST")] // TODO: do we need to actually start at the given element id (ignored)?
+    [Route("/session/{sessionId}/element/{elementId}/elements", "POST")] // TODO: do we need to actually start at the given element id?
     public class LocateElementsRequest
     {
         public Guid SessionId { get; set; }

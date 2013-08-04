@@ -8,6 +8,7 @@ using ServiceStack.Text;
 using ServiceStack.WebHost.Endpoints;
 using WinDriver.Exceptions;
 using WinDriver.Repository;
+using WinDriver.Services.Automation;
 
 namespace WinDriver
 {
@@ -43,6 +44,7 @@ namespace WinDriver
             container.Register<ILog>(x => LogManager.LogFactory.GetLogger("win-driver"));
             container.Register<IElementRepository>(new ElementRepository());
             container.Register<ISessionRepository>(new SessionRepository(container.Resolve<ILog>(), container.Resolve<IElementRepository>()));
+            container.Register<IAutomationService>(new WhiteAutomationService(container.Resolve<IElementRepository>()));
         }
 
         private static void Main(string[] args)

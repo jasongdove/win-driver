@@ -108,4 +108,5 @@ Backup*/
 UpgradeLog*.XML
 /src/win-driver/win-driver.csproj.DotSettings
 /src/win-driver/obj
-/src/win-driver/obj
+
+lib/interop.UIAutomationCore.dll

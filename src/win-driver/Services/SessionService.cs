@@ -8,16 +8,19 @@ using WinDriver.Domain;
 using WinDriver.Dto;
 using WinDriver.Exceptions;
 using WinDriver.Repository;
+using WinDriver.Services.Automation;
 
 namespace WinDriver.Services
 {
     public class SessionService : Service
     {
         private readonly ISessionRepository _sessionRepository;
+        private readonly IAutomationService _automationService;
 
-        public SessionService(ISessionRepository sessionRepository)
+        public SessionService(ISessionRepository sessionRepository, IAutomationService automationService)
         {
             _sessionRepository = sessionRepository;
+            _automationService = automationService;
         }
 
         public object Post(NewSessionRequest request)
@@ -70,14 +73,14 @@ namespace WinDriver.Services
         public WebDriverResponse Post(MoveToRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
-            session.MoveTo(request.Element, request.XOffset, request.YOffset);
+            _automationService.MoveTo(session, request.Element, request.XOffset, request.YOffset);
             return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
 
         public WebDriverResponse Post(DoubleClickRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
-            session.DoubleClick();
+            _automationService.DoubleClick(session);
             return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
 
@@ -91,7 +94,7 @@ namespace WinDriver.Services
         public WebDriverResponse Post(SessionSendKeysRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
-            session.SendKeys(request.Value);
+            _automationService.SendKeys(session, request.Value);
             return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
     }

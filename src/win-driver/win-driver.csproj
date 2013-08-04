@@ -106,6 +106,8 @@
     <Compile Include="Domain\Element.cs" />
     <Compile Include="Domain\ListItemElement.cs" />
     <Compile Include="Domain\Session.cs" />
+    <Compile Include="Domain\StatusCode.cs" />
+    <Compile Include="Domain\Timeouts.cs" />
     <Compile Include="Dto\Element\ClearElementRequest.cs" />
     <Compile Include="Dto\Element\ClickElementRequest.cs" />
     <Compile Include="Dto\Element\Element.cs" />
@@ -118,6 +120,7 @@
     <Compile Include="Dto\Element\LocateElementsResponse.cs" />
     <Compile Include="Dto\Element\SendKeysRequest.cs" />
     <Compile Include="Dto\Session\DoubleClickRequest.cs" />
+    <Compile Include="Dto\Session\ImplicitWaitRequest.cs" />
     <Compile Include="Dto\Session\MoveToRequest.cs" />
     <Compile Include="Dto\Status\Build.cs" />
     <Compile Include="Dto\Session\NewSessionRequest.cs" />

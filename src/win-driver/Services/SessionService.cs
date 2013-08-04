@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net;
 using ServiceStack.Common.Web;
 using ServiceStack.ServiceInterface;
@@ -70,14 +71,21 @@ namespace WinDriver.Services
         {
             var session = _sessionRepository.GetById(request.SessionId);
             session.MoveTo(request.Element, request.XOffset, request.YOffset);
-            return new WebDriverResponse(session) { Status = 0 };
+            return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
 
         public WebDriverResponse Post(DoubleClickRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
             session.DoubleClick();
-            return new WebDriverResponse(session) { Status = 0 };
+            return new WebDriverResponse(session) { Status = StatusCode.Success };
+        }
+
+        public WebDriverResponse Post(ImplicitWaitRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+            session.Timeouts.Implicit = TimeSpan.FromMilliseconds(request.Ms);
+            return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Automation;
@@ -10,6 +11,7 @@ using White.Core.InputDevices;
 using White.Core.UIItems;
 using White.Core.UIItems.Finders;
 using White.Core.UIItems.ListBoxItems;
+using White.Core.UIItems.WindowItems;
 using WinDriver.Exceptions;
 using WinDriver.Repository;
 
@@ -22,6 +24,8 @@ namespace WinDriver.Domain
         private readonly Capabilities _capabilities;
         private readonly Guid _sessionId;
         private readonly Application _application;
+        private readonly Timeouts _timeouts;
+        private Window _window;
 
         public Session(ILog log, IElementRepository elementRepository, Capabilities capabilities)
         {
@@ -43,6 +47,8 @@ namespace WinDriver.Domain
 
                 _application.WaitWhileBusy();
             }
+
+            _timeouts = new Timeouts();
         }
 
         public Capabilities Capabilities
@@ -58,6 +64,14 @@ namespace WinDriver.Domain
         public string Title
         {
             get { return _application.Process.MainWindowTitle; }
+        }
+
+        public Timeouts Timeouts
+        {
+            get
+            {
+                return _timeouts;
+            }
         }
 
         public IEnumerable<int> GetWindowHandles()
@@ -83,40 +97,46 @@ namespace WinDriver.Domain
             }
         }
 
-        public Guid FindElement(string locator, string value, Guid? elementId)
+        public Guid? FindElement(string locator, string value, Guid? elementId)
         {
-            var window = _application.GetWindow(Title);
-
-            var criteria = new List<SearchCriteria>();
-
-            switch (locator.ToLowerInvariant())
+            var sw = Stopwatch.StartNew();
+            while (sw.Elapsed < _timeouts.Implicit)
             {
-                case "name":
-                    criteria.Add(SearchCriteria.ByText(value));
-                    criteria.Add(SearchCriteria.ByAutomationId(value));
-                    break;
-                case "id":
-                    criteria.Add(SearchCriteria.ByAutomationId(value));
-                    break;
-                default:
-                    throw new VariableResourceNotFoundException(); // TODO: should this be method not supported?
-            }
+                var window = GetActiveWindow();
 
-            foreach (var searchCriteria in criteria)
-            {
-                var element = window.GetElement(searchCriteria);
-                if (element != null)
+                var criteria = new List<SearchCriteria>();
+
+                switch (locator.ToLowerInvariant())
                 {
-                    return _elementRepository.AddByHandle(element.Current.NativeWindowHandle);
+                    case "name":
+                        criteria.Add(SearchCriteria.ByText(value));
+                        criteria.Add(SearchCriteria.ByAutomationId(value));
+                        break;
+                    case "id":
+                        criteria.Add(SearchCriteria.ByAutomationId(value));
+                        break;
+                    default:
+                        throw new NotSupportedException();
                 }
+
+                foreach (var searchCriteria in criteria)
+                {
+                    var element = window.GetElement(searchCriteria);
+                    if (element != null)
+                    {
+                        return _elementRepository.AddByHandle(element.Current.NativeWindowHandle);
+                    }
+                }
+
+                Thread.Sleep(500);
             }
 
-            throw new VariableResourceNotFoundException();
+            return null;
         }
 
         public IEnumerable<Guid> FindElements(string locator, string value, Guid? elementId)
         {
-            var window = _application.GetWindow(Title);
+            var window = GetActiveWindow();
             var containers = new List<IUIItemContainer> { window };
 
             var criteria = new List<SearchCriteria>();
@@ -176,7 +196,7 @@ namespace WinDriver.Domain
         {
             // TODO: support modifier keys
 
-            var window = _application.GetWindow(Title);
+            var window = GetActiveWindow();
             var automationElement = GetAutomationElement(elementId);
 
             var item = new UIItem(automationElement, window);
@@ -185,7 +205,7 @@ namespace WinDriver.Domain
 
         public void Clear(Guid elementId)
         {
-            var window = _application.GetWindow(Title);
+            var window = GetActiveWindow();
             var automationElement = GetAutomationElement(elementId);
 
             var item = new UIItem(automationElement, window);
@@ -307,7 +327,7 @@ namespace WinDriver.Domain
         private AutomationElement GetAutomationElement(Guid elementId)
         {
             var element = _elementRepository.GetById(elementId);
-            var window = _application.GetWindow(Title);
+            var window = GetActiveWindow();
             var automationElement = element.GetAutomationElement(window);
             if (automationElement == null)
             {
@@ -315,6 +335,19 @@ namespace WinDriver.Domain
             }
 
             return automationElement;
+        }
+
+        private Window GetActiveWindow()
+        {
+            _application.WaitWhileBusy();
+
+            if (_window == null || _window.AutomationElement.Current.NativeWindowHandle != _application.Process.MainWindowHandle.ToInt32())
+            {
+                _log.Debug("Getting window with title: " + _application.Process.MainWindowTitle);
+                _window = _application.GetWindow(_application.Process.MainWindowTitle);
+            }
+
+            return _window;
         }
     }
 }

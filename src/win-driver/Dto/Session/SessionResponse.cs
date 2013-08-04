@@ -7,7 +7,7 @@ namespace WinDriver.Dto
         public SessionResponse(Session session)
         {
             SessionId = session.SessionId.ToString("N");
-            Status = 0;
+            Status = StatusCode.Success;
             Value = session.Capabilities;
         }
     }

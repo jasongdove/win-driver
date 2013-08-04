@@ -1,5 +1,6 @@
 ﻿using System;
 using ServiceStack.ServiceInterface;
+using WinDriver.Domain;
 using WinDriver.Dto;
 using WinDriver.Dto.Element;
 using WinDriver.Exceptions;
@@ -26,7 +27,8 @@ namespace WinDriver.Services
             }
 
             var elementId = session.FindElement(request.Using, request.Value, request.ElementId);
-            return new LocateElementResponse(session, elementId);
+            var status = elementId.HasValue ? StatusCode.Success : StatusCode.NoSuchElement;
+            return new LocateElementResponse(session, elementId) { Status = status };
         }
 
         public LocateElementsResponse Post(LocateElementsRequest request)
@@ -46,42 +48,42 @@ namespace WinDriver.Services
         {
             var session = _sessionRepository.GetById(request.SessionId);
             session.SendKeys(request.ElementId, request.Value);
-            return new WebDriverResponse(session) { Status = 0 };
+            return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
 
         public WebDriverResponse Post(ClickElementRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
             session.Click(request.ElementId);
-            return new WebDriverResponse(session) { Status = 0 };
+            return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
 
         public WebDriverResponse Post(ClearElementRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
             session.Clear(request.ElementId);
-            return new WebDriverResponse(session) { Status = 0 };
+            return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
 
         public WebDriverResponse Get(ElementNameRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
             var name = session.GetElementName(request.ElementId);
-            return new WebDriverResponse(session) { Status = 0, Value = name.ToLowerInvariant() };
+            return new WebDriverResponse(session) { Status = StatusCode.Success, Value = name.ToLowerInvariant() };
         }
 
         public WebDriverResponse Get(ElementAttributeRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
             var value = session.GetElementAttribute(request.ElementId, request.Name);
-            return new WebDriverResponse(session) { Status = 0, Value = value };
+            return new WebDriverResponse(session) { Status = StatusCode.Success, Value = value };
         }
 
         public WebDriverResponse Get(ElementTextRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
             var value = session.GetElementText(request.ElementId);
-            return new WebDriverResponse(session) { Status = 0, Value = value };
+            return new WebDriverResponse(session) { Status = StatusCode.Success, Value = value };
         }
     }
 }

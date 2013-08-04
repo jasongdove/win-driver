@@ -64,7 +64,6 @@ namespace WinDriver.Services.Automation
             point.Offset(x, y);
 
             Mouse.Instance.Location = point;
-
         }
 
         public string GetElementText(Session session, Guid elementId)

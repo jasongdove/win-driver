@@ -12,6 +12,7 @@ using White.Core.UIItems;
 using White.Core.UIItems.Finders;
 using White.Core.UIItems.ListBoxItems;
 using White.Core.UIItems.WindowItems;
+using White.Core.WindowsAPI;
 using WinDriver.Exceptions;
 using WinDriver.Repository;
 
@@ -121,10 +122,17 @@ namespace WinDriver.Domain
 
                 foreach (var searchCriteria in criteria)
                 {
-                    var element = window.GetElement(searchCriteria);
-                    if (element != null)
+                    try
                     {
-                        return _elementRepository.AddByHandle(element.Current.NativeWindowHandle);
+                        var element = window.GetElement(searchCriteria);
+                        if (element != null)
+                        {
+                            return _elementRepository.AddByHandle(element.Current.NativeWindowHandle);
+                        }
+                    }
+                    catch (ElementNotAvailableException)
+                    {
+                        // do nothing, not available means we can't get it
                     }
                 }
 
@@ -201,6 +209,24 @@ namespace WinDriver.Domain
 
             var item = new UIItem(automationElement, window);
             item.Enter(new String(keys));
+        }
+
+        public void SendKeys(string[] keys)
+        {
+            var window = GetActiveWindow();
+            foreach (var key in keys)
+            {
+                // TODO: support more keys
+                switch (key)
+                {
+                    case "\ue034":
+                        window.Keyboard.PressSpecialKey(KeyboardInput.SpecialKeys.F4);
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
         }
 
         public void Clear(Guid elementId)

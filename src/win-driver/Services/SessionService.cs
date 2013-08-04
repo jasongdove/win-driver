@@ -87,5 +87,12 @@ namespace WinDriver.Services
             session.Timeouts.Implicit = TimeSpan.FromMilliseconds(request.Ms);
             return new WebDriverResponse(session) { Status = StatusCode.Success };
         }
+
+        public WebDriverResponse Post(SessionSendKeysRequest request)
+        {
+            var session = _sessionRepository.GetById(request.SessionId);
+            session.SendKeys(request.Value);
+            return new WebDriverResponse(session) { Status = StatusCode.Success };
+        }
     }
 }

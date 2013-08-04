@@ -118,10 +118,11 @@
     <Compile Include="Dto\Element\LocateElementResponse.cs" />
     <Compile Include="Dto\Element\LocateElementsRequest.cs" />
     <Compile Include="Dto\Element\LocateElementsResponse.cs" />
-    <Compile Include="Dto\Element\SendKeysRequest.cs" />
+    <Compile Include="Dto\Element\ElementSendKeysRequest.cs" />
     <Compile Include="Dto\Session\DoubleClickRequest.cs" />
     <Compile Include="Dto\Session\ImplicitWaitRequest.cs" />
     <Compile Include="Dto\Session\MoveToRequest.cs" />
+    <Compile Include="Dto\Session\SessionSendKeysRequest.cs" />
     <Compile Include="Dto\Status\Build.cs" />
     <Compile Include="Dto\Session\NewSessionRequest.cs" />
     <Compile Include="Dto\Status\OperatingSystem.cs" />

@@ -44,7 +44,7 @@ namespace WinDriver.Services
             return new LocateElementsResponse(session, elementIds);
         }
 
-        public WebDriverResponse Post(SendKeysRequest request)
+        public WebDriverResponse Post(ElementSendKeysRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
             session.SendKeys(request.ElementId, request.Value);

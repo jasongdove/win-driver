@@ -136,14 +136,11 @@ namespace WinDriver.Services.Automation
                     ? GetUIAutomationElement(elementId.Value)
                     : _automation.ElementFromHandle(session.Application.Process.MainWindowHandle);
 
-                // TODO: OR conditions together and search without looping?
-                foreach (var condition in conditions)
+                var condition = _automation.CreateOrConditionFromArray(conditions.ToArray());
+                var element = container.FindFirst(TreeScope.TreeScope_Descendants, condition);
+                if (element != null)
                 {
-                    var element = container.FindFirst(TreeScope.TreeScope_Descendants, condition);
-                    if (element != null)
-                    {
-                        return _elementRepository.AddByHandle(element.CurrentNativeWindowHandle.ToInt32());
-                    }
+                    return _elementRepository.AddByHandle(element.CurrentNativeWindowHandle.ToInt32());
                 }
 
                 Thread.Sleep(500);
@@ -176,19 +173,17 @@ namespace WinDriver.Services.Automation
             }
 
             var allElementIds = new List<Guid>();
-            foreach (var condition in conditions)
+            var condition = _automation.CreateOrConditionFromArray(conditions.ToArray());
+            var results = container.FindAll(TreeScope.TreeScope_Descendants, condition);
+            if (results != null)
             {
-                var results = container.FindAll(TreeScope.TreeScope_Descendants, condition);
-                if (results != null)
+                for (int i = 0; i < results.Length; i++)
                 {
-                    for (int i = 0; i < results.Length; i++)
-                    {
-                        var element = results.GetElement(i);
-                        var id = elementId.HasValue && locator == "tag name" && value == "option"
-                            ? _elementRepository.Add(new ListItemElement(_elementRepository.GetById(elementId.Value), i))
-                            : _elementRepository.AddByHandle(element.CurrentNativeWindowHandle.ToInt32());
-                        allElementIds.Add(id);
-                    }
+                    var element = results.GetElement(i);
+                    var id = elementId.HasValue && locator == "tag name" && value == "option"
+                        ? _elementRepository.Add(new ListItemElement(_elementRepository.GetById(elementId.Value), i))
+                        : _elementRepository.AddByHandle(element.CurrentNativeWindowHandle.ToInt32());
+                    allElementIds.Add(id);
                 }
             }
 

@@ -247,6 +247,7 @@ namespace WinDriver.Domain
         public void DoubleClick()
         {
             Mouse.Instance.DoubleClick(Mouse.Instance.Location);
+            _application.WaitWhileBusy();
         }
 
         public string GetElementName(Guid elementId)

@@ -43,8 +43,7 @@ namespace WinDriver
 
             container.Register<ILog>(x => LogManager.LogFactory.GetLogger("win-driver"));
             container.Register<IElementRepository>(new ElementRepository());
-            container.Register<ISessionRepository>(new SessionRepository(container.Resolve<ILog>(), container.Resolve<IElementRepository>()));
-            //container.Register<IAutomationService>(new WhiteAutomationService(container.Resolve<IElementRepository>()));
+            container.Register<ISessionRepository>(new SessionRepository());
             container.Register<IAutomationService>(new UIAutomationService(container.Resolve<IElementRepository>()));
         }
 

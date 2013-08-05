@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Windows.Automation;
 using interop.UIAutomationCore;
-using White.Core.UIItems.Actions;
 
 namespace WinDriver.Domain
 {
@@ -16,11 +14,6 @@ namespace WinDriver.Domain
 
         protected Element()
         {
-        }
-
-        public virtual AutomationElement GetAutomationElement(ActionListener actionListener)
-        {
-            return AutomationElement.FromHandle(new IntPtr(_handle));
         }
 
         public virtual IUIAutomationElement GetUIAutomationElement(IUIAutomation automation)

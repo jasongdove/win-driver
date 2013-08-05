@@ -39,18 +39,23 @@ namespace WinDriver.Services.Automation
         public void DoubleClick(Session session)
         {
             NativeMethods.DoubleClick();
-            NativeMethods.WaitForInputIdle(session.Application.Process);
+            NativeMethods.WaitForInputIdle(session.Process);
         }
 
         public void MoveTo(Session session, Guid? elementId, int? xOffset, int? yOffset)
         {
             var point = System.Windows.Forms.Cursor.Position;
+
             double x = 0, y = 0;
             if (elementId.HasValue)
             {
                 var automationElement = GetUIAutomationElement(elementId.Value);
                 var rect = automationElement.CurrentBoundingRectangle;
+                
+                // start with the top left corner
                 point = new System.Drawing.Point(rect.left, rect.top);
+
+                // default offset to the middle of the element
                 x = (rect.right - rect.left) / 2.0;
                 y = (rect.bottom - rect.top) / 2.0;
             }
@@ -89,17 +94,29 @@ namespace WinDriver.Services.Automation
 
         public int GetWindowHandle(Session session)
         {
-            throw new NotImplementedException();
+            return session.Process.MainWindowHandle.ToInt32();
         }
 
         public IEnumerable<int> GetWindowHandles(Session session)
         {
-            throw new NotImplementedException();
+            return NativeMethods.EnumerateProcessWindowHandles(session.Process.Id).Select(x => x.ToInt32());
+        }
+
+        public string GetTitle(Session session)
+        {
+            return session.Process.MainWindowTitle;
         }
 
         public bool SwitchToWindow(Session session, string title)
         {
-            throw new NotImplementedException();
+            var window = NativeMethods.FindWindowByCaption(IntPtr.Zero, title);
+            if (window != IntPtr.Zero)
+            {
+                NativeMethods.SetForegroundWindow(window);
+                return true;
+            }
+
+            return false;
         }
 
         public string GetElementName(Session session, Guid elementId)
@@ -134,7 +151,7 @@ namespace WinDriver.Services.Automation
 
                 var container = elementId.HasValue
                     ? GetUIAutomationElement(elementId.Value)
-                    : _automation.ElementFromHandle(session.Application.Process.MainWindowHandle);
+                    : _automation.ElementFromHandle(session.Process.MainWindowHandle);
 
                 var condition = _automation.CreateOrConditionFromArray(conditions.ToArray());
                 var element = container.FindFirst(TreeScope.TreeScope_Descendants, condition);
@@ -153,7 +170,7 @@ namespace WinDriver.Services.Automation
         {
             var container = elementId.HasValue
                 ? GetUIAutomationElement(elementId.Value)
-                : _automation.ElementFromHandle(session.Application.Process.MainWindowHandle);
+                : _automation.ElementFromHandle(session.Process.MainWindowHandle);
 
             var conditions = new List<IUIAutomationCondition>();
             switch (locator.ToLowerInvariant())
@@ -220,7 +237,7 @@ namespace WinDriver.Services.Automation
 
         public void SendKeys(Session session, string[] keys)
         {
-            var window = _automation.ElementFromHandle(session.Application.Process.MainWindowHandle);
+            var window = _automation.ElementFromHandle(session.Process.MainWindowHandle);
             window.SetFocus();
 
             foreach (var key in keys)

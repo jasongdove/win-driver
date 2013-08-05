@@ -31,7 +31,7 @@ namespace WinDriver.Services
         public TitleResponse Get(TitleRequest request)
         {
             var session = _sessionRepository.GetById(request.SessionId);
-            return new TitleResponse(session, session.Title);
+            return new TitleResponse(session, _automationService.GetTitle(session));
         }
 
         public WebDriverResponse Post(SwitchToWindowRequest request)

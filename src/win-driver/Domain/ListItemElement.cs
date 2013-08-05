@@ -1,7 +1,4 @@
-﻿using System.Windows.Automation;
-using interop.UIAutomationCore;
-using White.Core.UIItems.Actions;
-using White.Core.UIItems.ListBoxItems;
+﻿using interop.UIAutomationCore;
 
 namespace WinDriver.Domain
 {
@@ -14,12 +11,6 @@ namespace WinDriver.Domain
         {
             _listElement = listElement;
             _index = index;
-        }
-
-        public override AutomationElement GetAutomationElement(ActionListener actionListener)
-        {
-            var list = new ListControl(_listElement.GetAutomationElement(actionListener), actionListener);
-            return list.Items[_index].AutomationElement;
         }
 
         public override IUIAutomationElement GetUIAutomationElement(IUIAutomation automation)

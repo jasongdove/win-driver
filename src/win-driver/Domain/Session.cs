@@ -1,26 +1,19 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
-using ServiceStack.Logging;
-using White.Core;
-using White.Core.UIItems.WindowItems;
-using WinDriver.Repository;
+using TestStack.White;
 
 namespace WinDriver.Domain
 {
     public sealed class Session : IDisposable
     {
-        private readonly ILog _log;
-        private readonly IElementRepository _elementRepository;
         private readonly Capabilities _capabilities;
         private readonly Guid _sessionId;
-        private readonly Application _application;
+        private readonly Process _process;
         private readonly Timeouts _timeouts;
-        private Window _window;
 
-        public Session(ILog log, IElementRepository elementRepository, Capabilities capabilities)
+        public Session(Capabilities capabilities)
         {
-            _log = log;
-            _elementRepository = elementRepository;
             _capabilities = capabilities;
             _sessionId = Guid.NewGuid();
 
@@ -28,14 +21,17 @@ namespace WinDriver.Domain
 
             if (Capabilities.App != null)
             {
-                _application = Application.Launch(Capabilities.App);
-
-                while (_application.GetWindows().Count == 0)
+                // TODO: Not sure why this works, but Process.Start will throw COMExceptions once automation is used...
+                var app = Application.Launch(Capabilities.App);
+                
+                while (app.GetWindows().Count == 0)
                 {
                     Thread.Sleep(500);
                 }
 
-                _application.WaitWhileBusy();
+                app.WaitWhileBusy();
+
+                _process = app.Process;
             }
 
             _timeouts = new Timeouts();
@@ -51,32 +47,35 @@ namespace WinDriver.Domain
             get { return _sessionId; }
         }
 
-        public string Title
-        {
-            get { return _application.Process.MainWindowTitle; }
-        }
-
         public Timeouts Timeouts
         {
             get { return _timeouts; }
         }
 
-        public Application Application
+        public Process Process
         {
-            get { return _application; }
-        }
-
-        public Window Window
-        {
-            get { return _window; }
-            set { _window = value; }
+            get { return _process; }
         }
 
         public void Dispose()
         {
-            if (_application != null)
+            if (_process != null)
             {
-                _application.Dispose();
+                if (_process.HasExited)
+                {
+                    _process.Dispose();
+                    return;
+                }
+
+                _process.CloseMainWindow();
+                _process.WaitForExit(5000);
+
+                if (!_process.HasExited)
+                {
+                    _process.Kill();
+                }
+
+                _process.Dispose();
             }
         }
     }

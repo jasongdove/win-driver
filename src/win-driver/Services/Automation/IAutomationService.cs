@@ -20,6 +20,8 @@ namespace WinDriver.Services.Automation
 
         IEnumerable<int> GetWindowHandles(Session session);
 
+        string GetTitle(Session session);
+
         bool SwitchToWindow(Session session, string title);
 
         string GetElementName(Session session, Guid elementId);
